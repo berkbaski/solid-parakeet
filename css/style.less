@@ -3,3 +3,34 @@
     margin-bottom: 1rem;
   }
 }
+
+.search-results {
+  .list-group-item {
+    cursor: pointer;
+    user-select: none;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+
+    &:hover {
+      color: var(--white);
+      background: var(--success);
+    }
+  }
+
+  .delete-button {
+    background: var(--red);
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    outline: none;
+
+    .search-text {
+      width: 100%;
+      margin-bottom: 0px;
+    }
+
+    i {
+      color: var(--white);
+    }
+  }
+}
