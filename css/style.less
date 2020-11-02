@@ -5,6 +5,10 @@
 }
 
 .search-results {
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+
   .list-group-item {
     cursor: pointer;
     user-select: none;
@@ -32,5 +36,25 @@
     i {
       color: var(--white);
     }
+  }
+}
+
+.rating {
+  border-bottom: .5px solid var(--gray);
+  padding: 10px 0;
+}
+
+.fav-button {
+  position: absolute;
+  z-index: 11;
+  background: var(--white);
+  right: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  border-bottom-left-radius: 50%;
+
+  i {
+    color: var(--red);
   }
 }
