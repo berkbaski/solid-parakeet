@@ -17,15 +17,15 @@
         <div class="container">
             <div class="row d-flex align-items-center w-100 m-0">
                 <div class="col-sm-12 col-md-10 col-lg-10 col-xl-10 search-box">
-                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                    <input id="input-search-box" class="form-control" type="search" placeholder="Search" aria-label="Search">
                 </div>
                 <div class="col-sm-12 col-md-2 col-lg-2 col-xl-2">
-                    <button class="btn btn-outline-success w-100" type="submit">Search</button>
+                    <button id="button-search" class="btn btn-outline-success w-100" type="submit" disabled>Search</button>
                 </div>
             </div>
         </div>
     </nav>
-    <div class="search-results d-none">
+    <div class="recent-search-results d-none">
         <div class="container">
             <div class="row m-0">
                 <div class="col-12">
@@ -371,6 +371,9 @@
 </div>
 
 <script src="//cdn.jsdelivr.net/npm/less"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+        integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+        crossorigin="anonymous"></script>
 <script src="js/app.js" type="module"></script>
 </body>
 </html>
