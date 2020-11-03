@@ -5,6 +5,11 @@ const sampleController = {
         this.baseUrl = '';
         this.searchInputValue = '';
         this.recentSearches = [];
+        this.staticTexts = [
+            { query: '.search-button', text: 'Search' },
+            { query: '.search-header', text: 'Search Results' },
+            { query: '.favorite-header', text: 'Favorites' },
+        ]
     },
     onload: function () {
         this.baseUrl = `http://www.omdbapi.com/?apikey=${SecretKey}`;
@@ -20,6 +25,7 @@ const sampleController = {
         this.bindActions();
         this.functions.getRecentSearches(this);
         this.functions.getFavoriteMoviesFromLocalStorage(this);
+        this.functions.initStaticTexts(this);
     },
     bindActions: function () {
         const _this = this;
@@ -48,6 +54,11 @@ const sampleController = {
         });
     },
     functions: {
+        initStaticTexts: function (_this) {
+            _this.staticTexts.forEach(x => {
+                $(x.query).text(x.text);
+            })
+        },
         getMovies: function (_this) {
             $.get(`${_this.baseUrl}&t=${_this.searchInputValue}`, function (data) {
                 if (data.Error) {
