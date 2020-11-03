@@ -24,14 +24,14 @@ const sampleController = {
     bindActions: function () {
         const _this = this;
 
-        this.doms.inputSearchBox.keyup(function (element) {
-            _this.functions.changeSearchInputValue(element, _this);
+        this.doms.inputSearchBox.keyup(function () {
+            _this.functions.changeSearchInputValue(_this);
         });
         this.doms.inputSearchBox.bind('keypress', function (e) {
             if (e.keyCode == 13) {
                 _this.functions.addWordToRecentSearch(_this);
                 _this.functions.getMovies(_this);
-                $(_this.doms.inputSearchBox).blur()
+                $(_this.doms.inputSearchBox).blur();
             }
         })
         this.doms.inputSearchBox.focus(function () {
@@ -60,7 +60,7 @@ const sampleController = {
         },
         getRecentSearches: function (_this) {
             $('.list-group-item').remove();
-            _this.recentSearches = JSON.parse(localStorage.getItem('recent-searches'));
+            _this.recentSearches = JSON.parse(localStorage.getItem('recent-searches')) || [];
             _this.recentSearches.forEach(recentSearch => {
                 _this.functions.createRecentSearchItem(recentSearch, _this);
             })
@@ -72,8 +72,8 @@ const sampleController = {
 
             localStorage.setItem('recent-searches', JSON.stringify(_this.recentSearches));
         },
-        changeSearchInputValue: function (element, _this) {
-            _this.searchInputValue = element.target.value;
+        changeSearchInputValue: function (_this) {
+            _this.searchInputValue = $(_this.doms.inputSearchBox).val();
 
             if (_this.searchInputValue.length > 2) {
                 _this.doms.buttonSearch.prop('disabled', false);
@@ -207,6 +207,7 @@ const sampleController = {
             _this.searchInputValue = recentSearch.value;
             _this.functions.getMovies(_this);
             _this.functions.changeRecentSearchVisible(false, _this);
+            _this.functions.changeSearchInputValue(_this);
         },
         checkRecentSearchLimit: function (_this) {
             _this.recentSearches.slice(10, _this.recentSearches.length).forEach(recentSearch => {
