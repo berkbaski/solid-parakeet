@@ -15,9 +15,11 @@ const sampleController = {
             recentSearches: $('.recent-search-results'),
             searchResults: $('.search-results'),
             recentSearchesParent: $('.list-group'),
+            favoriteMovies: $('.favorite-movies')
         };
         this.bindActions();
         this.functions.getRecentSearches(this);
+        this.functions.getFavoriteMoviesFromLocalStorage(this);
     },
     bindActions: function () {
         const _this = this;
@@ -25,6 +27,13 @@ const sampleController = {
         this.doms.inputSearchBox.keyup(function (element) {
             _this.functions.changeSearchInputValue(element, _this);
         });
+        this.doms.inputSearchBox.bind('keypress', function (e) {
+            if (e.keyCode == 13) {
+                _this.functions.addWordToRecentSearch(_this);
+                _this.functions.getMovies(_this);
+                $(_this.doms.inputSearchBox).blur()
+            }
+        })
         this.doms.inputSearchBox.focus(function () {
             _this.functions.changeRecentSearchVisible(true, _this);
         });
@@ -41,8 +50,12 @@ const sampleController = {
     functions: {
         getMovies: function (_this) {
             $.get(`${_this.baseUrl}&t=${_this.searchInputValue}`, function (data) {
-                _this.functions.clearMoviesContent(_this);
-                _this.functions.createMovieItem(data, _this.doms.searchResults[0]);
+                if (data.Error) {
+                    alert(data.Error);
+                } else {
+                    _this.functions.clearMoviesContent(_this);
+                    _this.functions.createMovieItem(data, _this.doms.searchResults[0], 'search-results-item', _this);
+                }
             });
         },
         getRecentSearches: function (_this) {
@@ -78,10 +91,10 @@ const sampleController = {
         clearMoviesContent: function (_this) {
             $('.search-results-item').remove();
         },
-        createMovieItem: function (movie, parentElement) {
+        createMovieItem: function (movie, parentElement, extraClass, _this) {
             const columnElement = document.createElement('div');
             columnElement.id = movie.imdbID;
-            columnElement.className = 'col-sm-12 col-md-6 col-lg-4 col-xl-3 mb-3 search-results-item';
+            columnElement.className = `col-sm-12 col-md-6 col-lg-4 col-xl-3 mb-3 ${extraClass}`;
 
             const cardElement = document.createElement('div');
             cardElement.className = 'card';
@@ -91,7 +104,12 @@ const sampleController = {
                 'fav-button d-flex align-items-center justify-content-center';
 
             const heartElement = document.createElement('i');
-            heartElement.className = 'far fa-heart';
+            const isFavorite = _this.functions.isFavorite(movie.imdbID, _this);
+            heartElement.className = isFavorite ? 'fas fa-heart' : 'far fa-heart';
+
+            favButtonElement.addEventListener('click', function () {
+                _this.functions.toggleFavorite(movie, heartElement, _this);
+            });
 
             const imgElement = document.createElement('img');
             imgElement.className = 'card-img-top';
@@ -111,24 +129,25 @@ const sampleController = {
             const ratingsElement = document.createElement('h5');
             cardRatings.appendChild(ratingsElement);
 
-            movie.Ratings.forEach(rating => {
-                const ratingElement = document.createElement('div');
-                ratingElement.className =
-                    'd-flex w-100 align-items-center justify-content-between rating';
+            if (movie && movie.Ratings) {
+                movie.Ratings.forEach(rating => {
+                    const ratingElement = document.createElement('div');
+                    ratingElement.className =
+                        'd-flex w-100 align-items-center justify-content-between rating';
 
-                const ratingHeaderElement = document.createElement('b');
-                ratingHeaderElement.innerText = rating.Source;
+                    const ratingHeaderElement = document.createElement('b');
+                    ratingHeaderElement.innerText = rating.Source;
 
-                const ratingValueElement = document.createElement('p');
-                ratingValueElement.className = 'm-0 ml-1';
-                ratingValueElement.innerText = rating.Value;
+                    const ratingValueElement = document.createElement('p');
+                    ratingValueElement.className = 'm-0 ml-1';
+                    ratingValueElement.innerText = rating.Value;
 
-                ratingElement.appendChild(ratingHeaderElement);
-                ratingElement.appendChild(ratingValueElement);
+                    ratingElement.appendChild(ratingHeaderElement);
+                    ratingElement.appendChild(ratingValueElement);
 
-                cardRatings.appendChild(ratingElement);
-            })
-
+                    cardRatings.appendChild(ratingElement);
+                })
+            }
 
             cardBodyElement.appendChild(cardTitleElement);
             cardBodyElement.appendChild(cardRatings);
@@ -192,6 +211,53 @@ const sampleController = {
         checkRecentSearchLimit: function (_this) {
             _this.recentSearches.slice(10, _this.recentSearches.length).forEach(recentSearch => {
                 $(`#${recentSearch.id}`).remove()
+            })
+        },
+        toggleFavorite: function (movie, heartElement, _this) {
+            const isFavorite = _this.functions.isFavorite(movie.imdbID, _this)
+            if (isFavorite) {
+                _this.functions.removeMovieFromFavorites(movie.imdbID, _this);
+                heartElement.className = 'far fa-heart'
+            } else {
+                _this.functions.addMovieToFavorites(movie, _this);
+                heartElement.className = 'fas fa-heart'
+            }
+        },
+        isFavorite: function (imdbID, _this) {
+            return !!_this.functions.getMovieFromFavorites(imdbID, _this);
+        },
+        addMovieToFavorites: function (movie, _this) {
+            const favoriteMovies = _this.functions.getMoviesFromFavorites();
+            favoriteMovies.push(movie);
+            _this.functions.updateFavoriteMovies(favoriteMovies);
+            _this.functions.getFavoriteMoviesFromLocalStorage(_this);
+        },
+        getMoviesFromFavorites: function () {
+            return JSON.parse(localStorage.getItem('favorite-movies')) || [];
+        },
+        getMovieFromFavorites: function (imdbID, _this) {
+            const favoriteMovies = _this.functions.getMoviesFromFavorites();
+            return favoriteMovies.find(x => x.imdbID == imdbID);
+        },
+        removeMovieFromFavorites: function (imdbID, _this) {
+            const favoriteMovies = _this.functions.getMoviesFromFavorites();
+            const favoriteMovie = favoriteMovies.find(x => x.imdbID == imdbID);
+            const index = favoriteMovies.indexOf(favoriteMovie);
+            if (index > -1) {
+                favoriteMovies.splice(index, 1);
+            }
+
+            _this.functions.updateFavoriteMovies(favoriteMovies);
+        },
+        updateFavoriteMovies: function (movies) {
+            localStorage.setItem('favorite-movies', JSON.stringify(movies));
+        },
+        getFavoriteMoviesFromLocalStorage: function (_this) {
+            $('.favorite-movie-item').remove();
+
+            const favoriteMovies = _this.functions.getMoviesFromFavorites();
+            favoriteMovies.forEach(favoriteMovie => {
+                _this.functions.createMovieItem(favoriteMovie, _this.doms.favoriteMovies[0], 'favorite-movie-item', _this);
             })
         }
     },
